@@ -21,7 +21,7 @@ from foodsaving.pickups.models import (
 class PickupDateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PickupDateModel
-        fields = ['id', 'date', 'series', 'store', 'max_collectors', 'collector_ids', 'description']
+        fields = ['id', 'date', 'series', 'place', 'max_collectors', 'collector_ids', 'description']
         update_fields = ['date', 'max_collectors', 'description']
         extra_kwargs = {
             'series': {
@@ -31,25 +31,25 @@ class PickupDateSerializer(serializers.ModelSerializer):
 
     collector_ids = serializers.PrimaryKeyRelatedField(source='collectors', many=True, read_only=True)
 
-    def validate_store(self, store):
-        if not self.context['request'].user.groups.filter(store=store).exists():
-            raise PermissionDenied(_('You are not member of the store\'s group.'))
-        if not store.group.is_editor(self.context['request'].user):
+    def validate_place(self, place):
+        if not self.context['request'].user.groups.filter(place=place).exists():
+            raise PermissionDenied(_('You are not member of the place\'s group.'))
+        if not place.group.is_editor(self.context['request'].user):
             raise PermissionDenied(_('You need to be a group editor'))
-        return store
+        return place
 
     def create(self, validated_data):
         pickupdate = super().create(validated_data)
         History.objects.create(
             typus=HistoryTypus.PICKUP_CREATE,
-            group=pickupdate.store.group,
-            store=pickupdate.store,
+            group=pickupdate.place.group,
+            place=pickupdate.place,
             users=[
                 self.context['request'].user,
             ],
             payload=self.initial_data,
         )
-        pickupdate.store.group.refresh_active_status()
+        pickupdate.place.group.refresh_active_status()
         return pickupdate
 
     def update(self, pickupdate, validated_data):
@@ -78,14 +78,14 @@ class PickupDateSerializer(serializers.ModelSerializer):
         if changed_data:
             History.objects.create(
                 typus=HistoryTypus.PICKUP_MODIFY,
-                group=pickupdate.store.group,
-                store=pickupdate.store,
+                group=pickupdate.place.group,
+                place=pickupdate.place,
                 users=[
                     self.context['request'].user,
                 ],
                 payload=changed_data,
             )
-        pickupdate.store.group.refresh_active_status()
+        pickupdate.place.group.refresh_active_status()
         return pickupdate
 
     def validate_date(self, date):
@@ -107,14 +107,14 @@ class PickupDateJoinSerializer(serializers.ModelSerializer):
 
         History.objects.create(
             typus=HistoryTypus.PICKUP_JOIN,
-            group=pickupdate.store.group,
-            store=pickupdate.store,
+            group=pickupdate.place.group,
+            place=pickupdate.place,
             users=[
                 user,
             ],
             payload=PickupDateSerializer(instance=pickupdate).data,
         )
-        pickupdate.store.group.refresh_active_status()
+        pickupdate.place.group.refresh_active_status()
         return pickupdate
 
 
@@ -131,21 +131,21 @@ class PickupDateLeaveSerializer(serializers.ModelSerializer):
 
         History.objects.create(
             typus=HistoryTypus.PICKUP_LEAVE,
-            group=pickupdate.store.group,
-            store=pickupdate.store,
+            group=pickupdate.place.group,
+            place=pickupdate.place,
             users=[
                 user,
             ],
             payload=PickupDateSerializer(instance=pickupdate).data,
         )
-        pickupdate.store.group.refresh_active_status()
+        pickupdate.place.group.refresh_active_status()
         return pickupdate
 
 
 class PickupDateSeriesSerializer(serializers.ModelSerializer):
     class Meta:
         model = PickupDateSeriesModel
-        fields = ['id', 'max_collectors', 'store', 'rule', 'start_date', 'description']
+        fields = ['id', 'max_collectors', 'place', 'rule', 'start_date', 'description']
         update_fields = ('max_collectors', 'start_date', 'rule', 'description')
 
     def create(self, validated_data):
@@ -153,14 +153,14 @@ class PickupDateSeriesSerializer(serializers.ModelSerializer):
 
         History.objects.create(
             typus=HistoryTypus.SERIES_CREATE,
-            group=series.store.group,
-            store=series.store,
+            group=series.place.group,
+            place=series.place,
             users=[
                 self.context['request'].user,
             ],
             payload=self.initial_data,
         )
-        series.store.group.refresh_active_status()
+        series.place.group.refresh_active_status()
         return series
 
     def update(self, series, validated_data):
@@ -175,22 +175,22 @@ class PickupDateSeriesSerializer(serializers.ModelSerializer):
         if changed_data:
             History.objects.create(
                 typus=HistoryTypus.SERIES_MODIFY,
-                group=series.store.group,
-                store=series.store,
+                group=series.place.group,
+                place=series.place,
                 users=[
                     self.context['request'].user,
                 ],
                 payload=changed_data,
             )
-        series.store.group.refresh_active_status()
+        series.place.group.refresh_active_status()
         return series
 
-    def validate_store(self, store):
-        if not store.group.is_editor(self.context['request'].user):
+    def validate_place(self, place):
+        if not place.group.is_editor(self.context['request'].user):
             raise PermissionDenied(_('You need to be a group editor'))
-        if not store.group.is_member(self.context['request'].user):
-            raise serializers.ValidationError(_('You are not member of the store\'s group.'))
-        return store
+        if not place.group.is_member(self.context['request'].user):
+            raise serializers.ValidationError(_('You are not member of the place\'s group.'))
+        return place
 
     def validate_start_date(self, date):
         date = date.replace(second=0, microsecond=0)
@@ -222,12 +222,12 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         feedback = super().create(validated_data)
-        feedback.about.store.group.refresh_active_status()
+        feedback.about.place.group.refresh_active_status()
         return feedback
 
     def update(self, feedback, validated_data):
         super().update(feedback, validated_data)
-        feedback.about.store.group.refresh_active_status()
+        feedback.about.place.group.refresh_active_status()
         return feedback
 
     def get_is_editable(self, feedback):
@@ -235,9 +235,9 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
     def validate_about(self, about):
         user = self.context['request'].user
-        group = about.store.group
+        group = about.place.group
         if not group.is_member(user):
-            raise serializers.ValidationError(_('You are not member of the store\'s group.'))
+            raise serializers.ValidationError(_('You are not member of the place\'s group.'))
         if about.is_upcoming():
             raise serializers.ValidationError(_('The pickup is not done yet'))
         if not about.is_collector(user):

@@ -153,7 +153,7 @@ msgstr ""
 #: foodsaving/groups/templates/group_summary.html.jinja2:159
 #, python-format
 msgid ""
-"%(weight)s kg from <a href=\"%(store_url)s\">%(store_name)s</a>\n"
+"%(weight)s kg from <a href=\"%(place_url)s\">%(place_name)s</a>\n"
 "                                    "
 msgstr ""
 
@@ -231,7 +231,7 @@ msgid "An invitation has already been sent to this e-mail address"
 msgstr ""
 
 #: foodsaving/invitations/serializers.py:26
-#: foodsaving/stores/serializers.py:64
+#: foodsaving/places/serializers.py:64
 msgid "You are not a member of this group."
 msgstr ""
 
@@ -297,7 +297,7 @@ msgstr ""
 
 #: foodsaving/pickups/serializers.py:37 foodsaving/pickups/serializers.py:171
 #: foodsaving/pickups/serializers.py:210
-msgid "You are not member of the store's group."
+msgid "You are not member of the place's group."
 msgstr ""
 
 #: foodsaving/pickups/serializers.py:86
@@ -364,7 +364,7 @@ msgid ""
 "                                <strong>Pickup notification</strong> emails for this group."
 msgstr ""
 
-#: foodsaving/stores/serializers.py:69
+#: foodsaving/places/serializers.py:69
 msgid "Set at least one week in advance"
 msgstr ""
 

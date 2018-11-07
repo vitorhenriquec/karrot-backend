@@ -10,7 +10,7 @@ from foodsaving.groups.models import GroupMembership
 from foodsaving.groups.roles import GROUP_EDITOR
 from foodsaving.invitations.models import Invitation
 from foodsaving.pickups.models import PickupDate
-from foodsaving.stores.models import Store
+from foodsaving.places.models import Place
 
 
 @receiver(pre_save, sender=GroupMembership)
@@ -129,28 +129,28 @@ def feedback_possible(sender, instance, **kwargs):
             user=collector,
             type=NotificationType.FEEDBACK_POSSIBLE.value,
             context={
-                'group': pickup.store.group.id,
+                'group': pickup.place.group.id,
                 'pickup': pickup.id,
             },
             expires_at=expiry_date,
         )
 
 
-@receiver(post_save, sender=Store)
-def new_store(sender, instance, created, **kwargs):
+@receiver(post_save, sender=Place)
+def new_place(sender, instance, created, **kwargs):
     if not created:
         return
 
-    store = instance
+    place = instance
 
-    for member in store.group.members.exclude(id=store.created_by_id):
+    for member in place.group.members.exclude(id=place.created_by_id):
         Notification.objects.create(
             user=member,
             type=NotificationType.NEW_STORE.value,
             context={
-                'group': store.group.id,
-                'store': store.id,
-                'user': store.created_by_id,
+                'group': place.group.id,
+                'place': place.id,
+                'user': place.created_by_id,
             },
         )
 

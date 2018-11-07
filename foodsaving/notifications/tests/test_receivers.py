@@ -9,7 +9,7 @@ from foodsaving.groups.models import GroupMembership
 from foodsaving.groups.roles import GROUP_EDITOR
 from foodsaving.invitations.models import Invitation
 from foodsaving.pickups.factories import PickupDateFactory
-from foodsaving.stores.factories import StoreFactory
+from foodsaving.places.factories import PlaceFactory
 from foodsaving.users.factories import UserFactory
 
 
@@ -85,8 +85,8 @@ class TestNotificationReceivers(TestCase):
     def test_creates_feedback_possible_notification(self):
         member = UserFactory()
         group = GroupFactory(members=[member])
-        store = StoreFactory(group=group)
-        pickup = PickupDateFactory(store=store)
+        place = PlaceFactory(group=group)
+        pickup = PickupDateFactory(place=place)
 
         pickup.add_collector(member)
         pickup.done_and_processed = True
@@ -98,17 +98,17 @@ class TestNotificationReceivers(TestCase):
             notification[0].expires_at, pickup.date + relativedelta(days=settings.FEEDBACK_POSSIBLE_DAYS)
         )
 
-    def test_creates_new_store_notification(self):
+    def test_creates_new_place_notification(self):
         member = UserFactory()
         creator = UserFactory()
         group = GroupFactory(members=[member, creator])
-        store = StoreFactory(group=group, created_by=creator)
+        place = PlaceFactory(group=group, created_by=creator)
 
         notifications = Notification.objects.filter(type=NotificationType.NEW_STORE.value)
         # creator does not get a notification
         self.assertEqual(notifications.count(), 1)
         self.assertEqual(notifications[0].user, member)
-        self.assertEqual(notifications[0].context['store'], store.id)
+        self.assertEqual(notifications[0].context['place'], place.id)
         self.assertEqual(notifications[0].context['user'], creator.id)
 
     def test_creates_new_member_notification(self):

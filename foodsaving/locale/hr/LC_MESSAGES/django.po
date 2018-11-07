@@ -25,8 +25,8 @@ msgstr ""
 #: foodsaving/applications/api.py:29 foodsaving/groups/api.py:57
 #: foodsaving/invitations/serializers.py:27
 #: foodsaving/pickups/permissions.py:67 foodsaving/pickups/serializers.py:38
-#: foodsaving/pickups/serializers.py:190 foodsaving/stores/api.py:18
-#: foodsaving/stores/serializers.py:85
+#: foodsaving/pickups/serializers.py:190 foodsaving/places/api.py:18
+#: foodsaving/places/serializers.py:85
 msgid "You need to be a group editor"
 msgstr ""
 
@@ -298,7 +298,7 @@ msgstr ""
 
 #: foodsaving/groups/templates/group_summary.html.jinja2:171
 #, python-format
-msgid "%(weight)s kg from <a href=\"%(store_url)s\">%(store_name)s</a>"
+msgid "%(weight)s kg from <a href=\"%(place_url)s\">%(place_name)s</a>"
 msgstr ""
 
 #: foodsaving/groups/templates/group_summary.html.jinja2:184
@@ -336,7 +336,7 @@ msgstr ""
 msgid ""
 "You've received enough trust from fellow group members to grant you "
 "<strong>editing permissions</strong>. For example, you can now modify your "
-"group, stores and pickup dates, or create new ones."
+"group, places and pickup dates, or create new ones."
 msgstr ""
 
 #: foodsaving/groups/templates/user_became_editor.html.jinja2:129
@@ -385,7 +385,7 @@ msgid "An invitation has already been sent to this e-mail address"
 msgstr ""
 
 #: foodsaving/invitations/serializers.py:25
-#: foodsaving/stores/serializers.py:83
+#: foodsaving/places/serializers.py:83
 msgid "You are not a member of this group."
 msgstr ""
 
@@ -451,7 +451,7 @@ msgstr ""
 
 #: foodsaving/pickups/serializers.py:36 foodsaving/pickups/serializers.py:192
 #: foodsaving/pickups/serializers.py:240
-msgid "You are not member of the store's group."
+msgid "You are not member of the place's group."
 msgstr ""
 
 #: foodsaving/pickups/serializers.py:93
@@ -523,7 +523,7 @@ msgid ""
 "                                <strong>Pickup notification</strong> emails for this group."
 msgstr ""
 
-#: foodsaving/stores/serializers.py:90
+#: foodsaving/places/serializers.py:90
 msgid "Set at least one week in advance"
 msgstr ""
 

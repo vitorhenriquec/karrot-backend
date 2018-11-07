@@ -13,7 +13,7 @@ from foodsaving.groups.factories import GroupFactory
 from foodsaving.groups.models import GroupStatus
 from foodsaving.pickups.factories import PickupDateSeriesFactory
 from foodsaving.pickups.models import PickupDate
-from foodsaving.stores.factories import StoreFactory
+from foodsaving.places.factories import PlaceFactory
 from foodsaving.tests.utils import ExtractPaginationMixin
 from foodsaving.users.factories import UserFactory
 
@@ -35,7 +35,7 @@ class TestPickupDateSeriesCreationAPI(APITestCase, ExtractPaginationMixin):
 
         self.member = UserFactory()
         self.group = GroupFactory(members=[self.member])
-        self.store = StoreFactory(group=self.group)
+        self.place = PlaceFactory(group=self.group)
 
     def test_create_and_get_recurring_series(self):
         url = '/api/pickup-date-series/'
@@ -46,7 +46,7 @@ class TestPickupDateSeriesCreationAPI(APITestCase, ExtractPaginationMixin):
         start_date = self.group.timezone.localize(datetime.now().replace(hour=20, minute=0))
         pickup_series_data = {
             'max_collectors': 5,
-            'store': self.store.id,
+            'place': self.place.id,
             'rule': str(recurrence),
             'start_date': start_date
         }
@@ -60,7 +60,7 @@ class TestPickupDateSeriesCreationAPI(APITestCase, ExtractPaginationMixin):
         del response.data['start_date']
         expected_series_data = {
             'max_collectors': 5,
-            'store': self.store.id,
+            'place': self.place.id,
             'rule': str(recurrence),
             'description': ''
         }
@@ -109,7 +109,7 @@ class TestPickupDateSeriesCreationAPI(APITestCase, ExtractPaginationMixin):
                 'max_collectors': 5,
                 'series': series_id,
                 'collector_ids': [],
-                'store': self.store.id,
+                'place': self.place.id,
                 'description': ''
             })
         self.assertEqual(response.data, created_pickup_dates)
@@ -123,7 +123,7 @@ class TestPickupDateSeriesCreationAPI(APITestCase, ExtractPaginationMixin):
         start_date = self.group.timezone.localize(datetime.now().replace(hour=20, minute=0))
         pickup_series_data = {
             'max_collectors': 5,
-            'store': self.store.id,
+            'place': self.place.id,
             'rule': str(recurrence),
             'start_date': start_date
         }
@@ -144,8 +144,8 @@ class TestPickupDateSeriesChangeAPI(APITestCase, ExtractPaginationMixin):
         self.now = timezone.now()
         self.member = UserFactory()
         self.group = GroupFactory(members=[self.member])
-        self.store = StoreFactory(group=self.group)
-        self.series = PickupDateSeriesFactory(max_collectors=3, store=self.store)
+        self.place = PlaceFactory(group=self.group)
+        self.series = PickupDateSeriesFactory(max_collectors=3, place=self.place)
         self.series.update_pickup_dates(start=lambda: self.now)
 
     def test_change_max_collectors_for_series(self):
@@ -246,7 +246,7 @@ class TestPickupDateSeriesChangeAPI(APITestCase, ExtractPaginationMixin):
         # shifting 5 days to the past is similar to shifting 2 days to the future
         for response_pickup, old_date in zip_longest(response.data, original_dates):
             new_date = shift_date_in_local_time(old_date, relativedelta(days=2), self.group.timezone)
-            if new_date > self.now + relativedelta(weeks=self.store.weeks_in_advance):
+            if new_date > self.now + relativedelta(weeks=self.place.weeks_in_advance):
                 # date too far in future
                 self.assertIsNone(response_pickup)
             else:
@@ -312,12 +312,12 @@ class TestPickupDateSeriesChangeAPI(APITestCase, ExtractPaginationMixin):
         response = self.client.patch(url, {'max_collectors': -1})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
 
-    def test_set_invalid_store_fails(self):
-        unrelated_store = StoreFactory()
+    def test_set_invalid_place_fails(self):
+        unrelated_place = PlaceFactory()
 
         self.client.force_login(user=self.member)
         url = '/api/pickup-date-series/{}/'.format(self.series.id)
-        response = self.client.patch(url, {'store': unrelated_store.id})
+        response = self.client.patch(url, {'place': unrelated_place.id})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
 
     def test_set_multiple_rules_fails(self):
@@ -445,7 +445,7 @@ class TestPickupDateSeriesAPIAuth(APITestCase):
         self.series = PickupDateSeriesFactory()
         self.series_url = '/api/pickup-date-series/{}/'.format(self.series.id)
         self.non_member = UserFactory()
-        self.series_data = {'store': self.series.store.id, 'rule': 'FREQ=WEEKLY', 'start_date': timezone.now()}
+        self.series_data = {'place': self.series.place.id, 'rule': 'FREQ=WEEKLY', 'start_date': timezone.now()}
 
     def test_create_as_anonymous_fails(self):
         response = self.client.post(self.url, self.series_data)
@@ -458,7 +458,7 @@ class TestPickupDateSeriesAPIAuth(APITestCase):
 
     def test_create_as_newcomer_fails(self):
         newcomer = UserFactory()
-        self.series.store.group.groupmembership_set.create(user=newcomer)
+        self.series.place.group.groupmembership_set.create(user=newcomer)
         self.client.force_login(user=newcomer)
         response = self.client.post(self.url, self.series_data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
@@ -493,7 +493,7 @@ class TestPickupDateSeriesAPIAuth(APITestCase):
 
     def test_patch_as_newcomer_fails(self):
         newcomer = UserFactory()
-        self.series.store.group.groupmembership_set.create(user=newcomer)
+        self.series.place.group.groupmembership_set.create(user=newcomer)
         self.client.force_login(user=newcomer)
         response = self.client.patch(self.series_url, {})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
@@ -509,7 +509,7 @@ class TestPickupDateSeriesAPIAuth(APITestCase):
 
     def test_delete_as_newcomer_fails(self):
         newcomer = UserFactory()
-        self.series.store.group.groupmembership_set.create(user=newcomer)
+        self.series.place.group.groupmembership_set.create(user=newcomer)
         self.client.force_login(user=newcomer)
         response = self.client.delete(self.series_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)

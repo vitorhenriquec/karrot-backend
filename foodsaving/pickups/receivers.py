@@ -15,7 +15,7 @@ def leave_group_handler(sender, instance, **kwargs):
     for _ in PickupDate.objects. \
             filter(date__gte=timezone.now()). \
             filter(collectors__in=[user, ]). \
-            filter(store__group=group):
+            filter(place__group=group):
         _.remove_collector(user)
 
 

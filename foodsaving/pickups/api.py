@@ -41,7 +41,7 @@ class FeedbackViewSet(
     # Query parameters
     - `?given_by` - filter by user id
     - `?about` - filter by pickup id
-    - `?store` - filter by store id
+    - `?place` - filter by place id
     - `?group` - filter by group id
     - `?created_at_min` and `?created_at_max` - filter by creation date
     """
@@ -53,7 +53,7 @@ class FeedbackViewSet(
     pagination_class = FeedbackPagination
 
     def get_queryset(self):
-        return self.queryset.filter(about__store__group__members=self.request.user)
+        return self.queryset.filter(about__place__group__members=self.request.user)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()) \
@@ -88,14 +88,14 @@ class PickupDateSeriesViewSet(
     permission_classes = (IsAuthenticated, IsGroupEditor)
 
     def get_queryset(self):
-        return self.queryset.filter(store__group__members=self.request.user)
+        return self.queryset.filter(place__group__members=self.request.user)
 
     def perform_destroy(self, series):
         data = self.get_serializer(series).data
         History.objects.create(
             typus=HistoryTypus.SERIES_DELETE,
-            group=series.store.group,
-            store=series.store,
+            group=series.place.group,
+            place=series.place,
             users=[
                 self.request.user,
             ],
@@ -128,7 +128,7 @@ class PickupDateViewSet(
     list:
     Query parameters
     - `?series` - filter by pickup date series id
-    - `?store` - filter by store id
+    - `?place` - filter by place id
     - `?group` - filter by group id
     - `?date_min=<from_date>`&`date_max=<to_date>` - filter by date, can also either give either date_min or date_max
     """
@@ -141,7 +141,7 @@ class PickupDateViewSet(
     pagination_class = PickupDatePagination
 
     def get_queryset(self):
-        qs = self.queryset.filter(store__group__members=self.request.user, store__status='active')
+        qs = self.queryset.filter(place__group__members=self.request.user, place__status='active')
         if self.action == 'list':
             # because we have collector_ids field in the serializer
             # only prefetch on read_only actions, otherwise there are caching problems when collectors get added
@@ -154,8 +154,8 @@ class PickupDateViewSet(
 
         History.objects.create(
             typus=HistoryTypus.PICKUP_DELETE,
-            group=pickup.store.group,
-            store=pickup.store,
+            group=pickup.place.group,
+            place=pickup.place,
             users=[
                 self.request.user,
             ]

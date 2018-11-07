@@ -51,7 +51,7 @@ class History(NicelyFormattedModel):
     date = models.DateTimeField(default=timezone.now)
     typus = enum.EnumField(HistoryTypus)
     group = models.ForeignKey('groups.Group', on_delete=models.CASCADE)
-    store = models.ForeignKey('stores.Store', null=True, on_delete=models.CASCADE)
+    place = models.ForeignKey('places.Place', null=True, on_delete=models.CASCADE)
     users = models.ManyToManyField('users.User')
     payload = JSONField(null=True)
 
